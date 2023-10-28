@@ -1,7 +1,8 @@
 from flask import Flask
 
+# Это callable WSGI-приложение
 app = Flask(__name__)
 
-@app.router('/')
-def hello_word():
-return 'Hello, World!'
+@app.route('/')
+def hello_world():
+    return 'Welcome to Flask!'
