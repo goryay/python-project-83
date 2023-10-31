@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <!-- ======= Reports Of Check Url ======= -->
+  <main class="flex-grow-1">
+  <div class="container-lg mt-3">
+
+    <!-- ======= Url Information ======= -->
+    <h1>Сайт: {{ url.name }}</h1>
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover text-nowrap" data-test="url">
+
+        <tbody>
+          <tr>
+            <td>ID</td>
+            <td>{{ url.id }}</td>
+          </tr>
+          <tr>
+            <td>Имя</td>
+            <td>{{ url.name }}</td>
+          </tr>
+          <tr>
+            <td>Дата создания</td>
+            <td>{{ url.created_at }}</td>
+          </tr>
+        </tbody>
+
+      </table>
+    </div><!-- End Url Information -->
+
+    <h2 class="mt-5 mb-3">Проверки</h2>
+
+    <!-- ======= Start Checking Form ====== -->
+    <form method="post" action="{{ url_for('check_url', url_id=url.id) }}">
+      <input type="submit" class="btn btn-primary" value="Запустить проверку">
+    </form><!-- End Start Checking Form -->
+
+    <!-- ======= Table Of Checks ======= -->
+    <div>
+      <table class="table table-bordered table-hover mt-2" data-test="checks">
+
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Код ответа</th>
+            <th>h1</th>
+            <th>title</th>
+            <th>description</th>
+            <th>Дата создания</th>
+          </tr>
+        </thead>
+
+        <tbody>
+        {% for url in url_checks %}
+          <tr>
+            <td>{{ url.check_id }}</td>
+            <td>{{ url.status_code }}</td>
+            <td>{{ url.h1 }}</td>
+            <td>{{ url.title }}</td>
+            <td>{{ url.description }}</td>
+            <td>{{ url.last_checked_at }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+
+      </table>
+    </div><!-- End Table Of Checks -->
+
+  </div>
+  </main><!-- End Reports Of Check Url -->
+{% endblock %}
