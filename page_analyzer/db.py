@@ -1,9 +1,10 @@
 import psycopg2
-from psycopg2.extras import NameTupleCursor, DictCursor
+from psycopg2.extras import NamedTupleCursor, DictCursor
+
 
 def connect(app):
     return psycopg2.connect(
-        app.config['DATABASE_URL']
+        app.config['DATABASE_URL'],
     )
 
 
@@ -11,8 +12,8 @@ def close(connection):
     return connection.close()
 
 
-def add_url(connection, url_name);
-    with connection.cursor(cursor_factory=NameTupleCursor) as curs:
+def add_url(connection, url_name):
+    with connection.cursor(cursor_factory=NamedTupleCursor) as curs:
         curs.execute(
             '''
             INSERT INTO urls (name)
@@ -22,6 +23,7 @@ def add_url(connection, url_name);
         )
         url = curs.fetchone()
         connection.commit()
+
         return url
 
 

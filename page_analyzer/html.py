@@ -1,11 +1,12 @@
 import validators
 from urllib.parse import urlparse
 import requests
-from bs4 import BeatifulSoup
+from bs4 import BeautifulSoup
+
 
 def normalize_url(url):
     url_parsed = urlparse(url)
-    return f'{url_parsed.scheme}://{urlparsed.netloc}'
+    return f'{url_parsed.scheme}://{url_parsed.netloc}'
 
 
 def validate_url(url_entered):
