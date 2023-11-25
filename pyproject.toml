@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Page Analyzer is a site that analyzes websites for SEO suitability."
 authors = ["goryay <iam.goryn@gmail.com>"]
 readme = "README.md"
+packages = [{ include = "page_analyzer" },]
 
 [tool.poetry.dependencies]
 python = "^3.10"
