@@ -7,7 +7,7 @@ from flask import flash, get_flashed_messages
 import validators
 from urllib.parse import urlparse
 
-from page_analyzer.database_queries import TableUrls
+from page_analyzer.database import TableUrls
 
 
 app = Flask(__name__)
