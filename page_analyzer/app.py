@@ -9,7 +9,7 @@ from flask import (
     flash
 )
 
-from page_analyzer import db, html
+from page_analyzer import database, html
 
 app = Flask(__name__)
 
