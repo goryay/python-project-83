@@ -38,17 +38,17 @@ def post_url():
             url=url_entered,
         ), 422
 
-    connection = db.connect(app)
+    connection = database.connect(app)
     url_name = html.normalize_url(url_entered)
-    url = db.get_url_by_name(connection, url_name)
+    url = database.get_url_by_name(connection, url_name)
 
     if url:
         flash('Страница уже существует', 'info')
     else:
-        url = db.add_url(connection, url_name)
+        url = database.add_url(connection, url_name)
         flash('Страница успешно добавлена', 'success')
 
-    db.close(connection)
+    database.close(connection)
 
     return redirect(
         url_for(
@@ -60,9 +60,9 @@ def post_url():
 
 @app.get('/urls')
 def show_urls():
-    connection = db.connect(app)
-    urls = db.get_urls(connection)
-    db.close(connection)
+    connection = database.connect(app)
+    urls = database.get_urls(connection)
+    database.close(connection)
 
     return render_template(
         'urls.html',
@@ -72,10 +72,10 @@ def show_urls():
 
 @app.get('/urls/<int:url_id>')
 def show_url(url_id):
-    connection = db.connect(app)
-    url = db.get_url_by_id(connection, url_id)
-    url_checks = db.get_checks(connection, url_id)
-    db.close(connection)
+    connection = database.connect(app)
+    url = database.get_url_by_id(connection, url_id)
+    url_checks = database.get_checks(connection, url_id)
+    database.close(connection)
 
     return render_template(
         'url.html',
@@ -86,18 +86,18 @@ def show_url(url_id):
 
 @app.post('/urls/<int:url_id>/checks')
 def check_url(url_id):
-    connection = db.connect(app)
-    url = db.get_url_by_id(connection, url_id)
+    connection = database.connect(app)
+    url = database.get_url_by_id(connection, url_id)
     page_data = html.get_page_data(url.name)
 
     if not page_data or page_data.get('status_code') != 200:
         flash('Произошла ошибка при проверке', 'danger')
     else:
-        db.add_check(connection, url_id, page_data)
+        database.add_check(connection, url_id, page_data)
         flash('Страница успешно проверена', 'success')
 
-    url_checks = db.get_checks(connection, url_id)
-    db.close(connection)
+    url_checks = database.get_checks(connection, url_id)
+    database.close(connection)
 
     return render_template(
         'url.html',
