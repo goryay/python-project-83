@@ -1,95 +1,109 @@
-import psycopg2
 import os
+import psycopg2
 import datetime
-from dotenv import load_dotenv
+from psycopg2.extras import NamedTupleCursor
+from flask import abort, flash
 
 
-load_dotenv()
-DATABASE_URL = os.getenv('DATABASE_URL')
+def connect_db():
+    db_url = os.getenv('DATABASE_URL')
+    conn = psycopg2.connect(db_url)
+    return conn
 
 
-class TableUrls():
-    def insert(url: str) -> bool:
-        conn = psycopg2.connect(DATABASE_URL)
-        cur = conn.cursor()
-
-        try:
-            cur.execute("""
-                INSERT INTO table_urls (name, created_at)
-                VALUES (%s, %s);
-                """,
-                        (url, datetime.datetime.now()))
-            conn.commit()
-            res = True
-        except psycopg2.Error:
-            res = False
-
-        cur.close()
-        conn.close()
-
-        return res
-
-    def select_id(url: str) -> id:
-        conn = psycopg2.connect(DATABASE_URL)
-        cur = conn.cursor()
-
-        cur.execute("""
-            SELECT id FROM table_urls
-            WHERE name = %s;
-            """,
-                    (url, ))
-        id = cur.fetchone()[0]
-
-        cur.close()
-        conn.close()
-
-        return id
-
-    def select_url(id: int) -> dict:
-        conn = psycopg2.connect(DATABASE_URL)
-        cur = conn.cursor()
-
-        cur.execute("""
-            SELECT * FROM table_urls
-            WHERE id = %s;
-            """,
-                    (id, ))
-        url = Url(*cur.fetchone())
-
-        cur.close()
-        conn.close()
-
-        return url.__dict__
-
-    def select_urls() -> list:
-        conn = psycopg2.connect(DATABASE_URL)
-        cur = conn.cursor()
-
-        cur.execute("SELECT * FROM table_urls ORDER BY id DESC;")
-        urls = cur.fetchall()
-
-        cur.close()
-        conn.close()
-
-        urls = [Url(*url).__dict__ for url in urls]
-
-        return urls
-
-    def check_url(url: str) -> bool:
-        conn = psycopg2.connect(DATABASE_URL)
-        cur = conn.cursor()
-
-        cur.execute("SELECT * FROM table_urls WHERE name = %s;", (url, ))
-        response = True if cur.fetchone() else False
-
-        cur.close()
-        conn.close()
-
-        return response
+def get_url_by_name(url):
+    conn = connect_db()
+    with conn.cursor(cursor_factory=NamedTupleCursor) as cursor:
+        cursor.execute(
+            "SELECT * from urls where name=(%s)", (url,)
+        )
+        fetched_data = cursor.fetchone()
+    conn.close()
+    return fetched_data
 
 
-class Url():
-    def __init__(self, id, name, created_at) -> None:
-        self.id = id
-        self.name = name
-        self.created_at = created_at
+def get_url_by_id(id):
+    conn = connect_db()
+
+    with conn.cursor(cursor_factory=NamedTupleCursor) as cursor:
+        cursor.execute(
+            'SELECT * from urls where id=%s', (id,)
+        )
+        url = cursor.fetchone()
+    conn.close()
+    return url
+
+
+def get_url_with_checks(id):
+    conn = connect_db()
+
+    with conn.cursor(cursor_factory=NamedTupleCursor) as cursor:
+        cursor.execute(
+            'SELECT * FROM urls where id=%s', (id,)
+        )
+        url = cursor.fetchone()
+        if not url:
+            abort(404)
+
+    with conn.cursor(cursor_factory=NamedTupleCursor) as cursor:
+        cursor.execute(
+            'SELECT * from url_checks '
+            'where url_id=%s order by id desc', (id,)
+        )
+
+        checks = cursor.fetchall()
+
+    conn.close()
+    return url, checks
+
+
+def add_url(url):
+    conn = connect_db()
+    with conn.cursor(cursor_factory=NamedTupleCursor) as cursor:
+        cursor.execute(
+            "INSERT INTO urls "
+            "(name, created_at) "
+            "VALUES (%s, %s) RETURNING id;",
+            (url, datetime.datetime.now(),)
+        )
+        new_id = cursor.fetchone().id
+    conn.commit()
+    conn.close()
+    return new_id
+
+
+def add_check(id, response, page_content):
+    conn = connect_db()
+
+    with conn.cursor(cursor_factory=NamedTupleCursor) as cursor:
+        cursor.execute(
+            'INSERT INTO url_checks (url_id, status_code, h1,'
+            ' title, description, created_at) values '
+            '(%s, %s, %s, %s, %s, %s)',
+            (id, response.status_code, page_content.get('h1'),
+             page_content.get('title'), page_content.get('description'),
+             datetime.datetime.now(),)
+        )
+        flash('Страница успешно проверена', 'success')
+    conn.commit()
+    conn.close()
+
+
+def get_urls():
+    conn = connect_db()
+    with conn.cursor(cursor_factory=NamedTupleCursor) as cursor:
+        cursor.execute(
+            "SELECT * from urls order by id desc"
+        )
+
+        available_urls = cursor.fetchall()
+
+        cursor.execute(
+            "SELECT DISTINCT on (url_id) * from url_checks "
+            "order by url_id desc, id desc"
+        )
+
+        checks = cursor.fetchall()
+
+    conn.close()
+    return available_urls, checks

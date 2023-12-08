@@ -1,87 +1,94 @@
-from flask import Flask
-from flask import render_template
-from flask import redirect, request
-from flask import url_for
-from flask import flash, get_flashed_messages
+from flask import Flask, render_template, request, flash
+from flask import redirect, url_for
+import os
+from dotenv import load_dotenv
 
-import validators
-from urllib.parse import urlparse
+from page_analyzer.urls import normalize_url, validate
+from page_analyzer.parser import page_parser
+from page_analyzer.requests import get_response
+from page_analyzer.database import get_url_by_name, add_url, get_url_with_checks
+from page_analyzer.database import get_urls, get_url_by_id, add_check
 
-from page_analyzer.database import TableUrls
 
-
+load_dotenv()
 app = Flask(__name__)
-app.secret_key = "secret_key"
+app.secret_key = os.getenv('SECRET_KEY')
 
 
 @app.route('/')
 def index():
-    messages = get_flashed_messages(with_categories=True)
-
     return render_template(
-        'index.html',
-        input_url='',
-        messages=messages)
+        'index.html'
+    )
 
 
 @app.post('/urls')
-def add_url():
-    url = request.form.get('url')
-
-    if not validators.url(url):
-        message = 'URL обязателен' \
-            if url == '' \
-            else 'Некорректный URL'
-
-        flash(message, 'error')
-        messages = get_flashed_messages(with_categories=True)
-
+def urls_post():
+    url = request.form.to_dict().get('url')
+    errors = validate(url)
+    if errors:
+        for error in errors:
+            flash(error, 'danger')
         return render_template(
             'index.html',
-            input_url=url,
-            messages=messages,
+            url_name=url
         ), 422
 
-    url = urlparse(url)
-    url = f'{url.scheme}://{url.netloc}'
+    url = normalize_url(url)
 
-    if TableUrls.check_url(url):
-        id = TableUrls.select_id(url)
-        flash('URL существует', 'error')
+    fetched_data = get_url_by_name(url)
+    if fetched_data:
+        url_id: int = fetched_data.id
+        flash('Страница уже существует', 'info')
+
     else:
-        TableUrls.insert(url)
+        url_id: int = add_url(url)
+        flash('Страница успешно добавлена', 'success')
 
-    id = TableUrls.select_id(url)
-    return redirect(url_for('show_url', id=id), 302)
+    return redirect(url_for('url_get', id=url_id)), 301
+
+
+@app.route('/urls/<int:id>')
+def url_get(id):
+    url, checks = get_url_with_checks(id)
+
+    return render_template(
+        'show.html',
+        url=url,
+        checks=checks
+    )
 
 
 @app.get('/urls')
-def show_urls():
-    urls = TableUrls.select_urls()
+def urls_get():
+    available_urls, checks = get_urls()
 
     return render_template(
         'urls.html',
-        urls=urls,
+        data=list(zip(available_urls, checks)),
     )
 
 
-@app.get('/url/<id>')
-def show_url(id):
-    url = TableUrls.select_url(id)
+@app.post('/urls/<id>/checks')
+def url_check(id):
+    url = get_url_by_id(id)
+    response = get_response(url.name)
+    if not response:
+        return redirect(url_for('url_get', id=id))
 
-    messages = ''
-    checks = ''
+    page_content = response.text
+    page_content = page_parser(page_content)
 
-    return render_template(
-        'url.html',
-        url=url,
-        messages=messages,
-        checks=checks,
-    )
+    add_check(id, response, page_content)
+
+    return redirect(url_for('url_get', id=id))
 
 
-@app.route('/url/<id>/checks', methods=['post'])
-def checks(id):
-    id = 0
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template('error/404.html'), 404
 
-    return redirect(url_for('show_url', id=id), 302)
+
+@app.errorhandler(500)
+def server_error(error):
+    return render_template('error/500.html'), 500
