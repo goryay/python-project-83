@@ -1,14 +1,18 @@
-CREATE TABLE IF NOT EXISTS table_urls (
-    id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    name varchar(255),
-    created_at timestamp
+drop table if exists url_checks CASCADE ;
+drop table if exists urls CASCADE ;
+
+create table urls(
+id serial primary key,
+name varchar(255) unique,
+created_at DATE DEFAULT CURRENT_TIMESTAMP
 );
-CREATE TABLE IF NOT EXISTS url_checks (
-    id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    url_id bigint REFERENCES table_urls (id),
+
+create table url_checks(
+    id serial primary key,
+    url_id integer references urls (id) on delete cascade on update cascade,
     status_code integer,
     h1 varchar(255),
     title varchar(255),
-    description text,
-    created_at timestamp
-);
+    description varchar(255),
+    created_at DATE DEFAULT CURRENT_TIMESTAMP
+)
