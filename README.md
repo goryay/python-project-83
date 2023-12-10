@@ -52,3 +52,6 @@
 #### For every project should be configured a Makefile to initiate the project without requiring manual commands
 #### ``` make install```, which makes poetry install packages from pyproject.toml
 #### Current project starts after typing ```make start```
+
+
+[Page Analyzer is a site](https://page-analyzer-ogb0.onrender.com) 
