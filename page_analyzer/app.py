@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, flash
 from flask import redirect, url_for
-import os
 from dotenv import load_dotenv
 
 from page_analyzer.urls import normalize_url, validate
