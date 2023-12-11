@@ -12,7 +12,6 @@ from page_analyzer.database import get_urls, get_url_by_id, add_check
 load_dotenv()
 app = Flask(__name__)
 app.config.update(SECRET_KEY='secret_key')
-#app.secret_key = os.getenv('SECRET_KEY')
 
 
 @app.route('/')
