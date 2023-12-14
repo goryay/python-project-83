@@ -11,7 +11,9 @@
 
 
 #### Clone the current repository via command:
-```https://github.com/goryay/python-project-83.git```
+```
+https://github.com/goryay/python-project-83.git
+```
 
 
 ***
@@ -33,7 +35,9 @@
 
 
 #### Check your pip version with the following command:
-```python -m pip --version```
+```
+python -m pip --version
+```
 
 
 #### Make sure that pip is always up-to-date. If not, use the following:
@@ -42,10 +46,13 @@
 
 #### Next install poetry on your OS. (the link is below)
 [Poetry installation](https://python-poetry.org/docs/)
-##### don't forget to init poetry packages with command ```poetry init```
+#### don't forget to init poetry packages with command 
+```
+poetry init
+```
 
 
-### We will be also working with postgreSQL, so make sure that you have installed it on your OS
+#### We will be also working with postgreSQL, so make sure that you have installed it on your OS
 
 
 *** 
