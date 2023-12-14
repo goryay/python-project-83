@@ -53,9 +53,11 @@
 #### ``` make install```, which makes poetry install packages from pyproject.toml
 #### Current project starts after typing ```make start```
 
+
 ###Use PostgreSQL for local development and production. In test and production environments, the application will have access to the environment variable DATABASE_URL. This is a common way to connect the database to the application:
 ### The string has the following format: {provider}://{user}:{password}@{host}:{port}/{db}
 ```export DATABASE_URL=postgresql://janedoe:mypassword@localhost:5432/mydb```
+
 
 ###To work with PosgreSQL, the psycopg library can be useful
 ###To build the application we can write a build.sh bash script of the form:
@@ -65,6 +67,7 @@
 # next we load our sql file with tables into the connected database
 make install && psql -a -d $DATABASE_URL -f database.sql```
 
+
 ###Next, make the script executable 
 ```chmod +x ./build.sh ```
 ###and add this command to the Makefile:
@@ -72,5 +75,6 @@ make install && psql -a -d $DATABASE_URL -f database.sql```
 	./build.sh```
 ###Then change the build command to make build in the project settings on the deploy service
 ###Thus, in the local environment your application will use the reference to the local database specified in the .env file. And in the deploy environment, the reference to the database you created on render and specified in the environment variables.
+
 
 [Page Analyzer is a site](https://page-analyzer-ogb0.onrender.com) 
