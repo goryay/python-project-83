@@ -60,8 +60,14 @@ poetry init
 
 ## Makefile 
 #### For every project should be configured a Makefile to initiate the project without requiring manual commands
-#### ``` make install```, which makes poetry install packages from pyproject.toml
-#### Current project starts after typing ```make start```
+#### Which makes poetry install packages from pyproject.toml
+```
+make install
+```
+#### Current project starts after typing 
+```
+make start
+```
 
 
 ***
